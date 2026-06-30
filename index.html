@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://unpkg.com" />
     
     <style>
-        /* ALAPOK: Teljes képernyős elrendezés tiszta CSS-szel */
         html, body {
             margin: 0;
             padding: 0;
@@ -21,7 +20,6 @@
             color: #ffffff;
         }
 
-        /* A TÉRKÉP HÁTTÉRRÉTEGE */
         #map { 
             position: absolute;
             top: 0;
@@ -30,10 +28,9 @@
             right: 0;
             width: 100% !important;
             height: 100% !important;
-            z-index: 1;
+            z-index: 1; 
         }
 
-        /* FELSŐ KERESŐSÁV */
         .kereso-kontener {
             position: absolute;
             top: 16px;
@@ -51,10 +48,7 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
         }
 
-        .kereso-sor {
-            display: flex;
-            gap: 8px;
-        }
+        .kereso-sor { display: flex; gap: 8px; }
 
         .kereso-mezo {
             flex-grow: 1;
@@ -65,28 +59,14 @@
             padding: 12px 16px;
             font-size: 14px;
             outline: none;
-            box-sizing: border-box;
             width: 100%;
+            box-sizing: border-box;
         }
 
-        .kereso-mezo:focus {
-            border-color: #10b981;
-            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-        }
+        .kereso-mezo:focus { border-color: #10b981; }
 
-        /* KATEGÓRIA GOMBOK */
-        .gomb-sor {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            margin-top: 12px;
-            padding-bottom: 4px;
-        }
-
-        /* Elrejtjük a görgetősávot, de görgethető marad */
-        .gomb-sor::-webkit-scrollbar {
-            display: none;
-        }
+        .gomb-sor { display: flex; gap: 8px; overflow-x: auto; margin-top: 12px; padding-bottom: 4px; }
+        .gomb-sor::-webkit-scrollbar { display: none; }
 
         .szuro-gomb {
             background-color: #374151;
@@ -100,13 +80,8 @@
             transition: all 0.2s;
         }
 
-        .szuro-gomb.aktiv {
-            background-color: #059669;
-            color: white;
-            font-weight: bold;
-        }
+        .szuro-gomb.aktiv { background-color: #059669; color: white; font-weight: bold; }
 
-        /* ALSÓ INFORMÁCIÓS PANEL */
         .info-panel {
             position: fixed;
             bottom: 0;
@@ -125,94 +100,20 @@
             box-sizing: border-box;
         }
 
-        .info-panel.nyitva {
-            transform: translate(-50%, 0);
-        }
+        .info-panel.nyitva { transform: translate(-50%, 0); }
+        .panel-csik { width: 48px; height: 6px; background-color: #4b5563; border-radius: 3px; margin: 0 auto 16px auto; cursor: pointer; }
+        .panel-fejlec { display: flex; justify-content: space-between; align-items: flex-start; }
+        .kategoria-cimke { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #34d399; background-color: rgba(6, 78, 59, 0.5); padding: 4px 8px; border-radius: 6px; }
+        .hely-neve { margin: 8px 0 0 0; font-size: 22px; font-weight: bold; }
+        .bezar-gomb { background: none; border: none; color: #9ca3af; font-size: 22px; cursor: pointer; }
 
-        .panel-csik {
-            width: 48px;
-            height: 6px;
-            background-color: #4b5563;
-            border-radius: 3px;
-            margin: 0 auto 16px auto;
-            cursor: pointer;
-        }
-
-        .panel-fejlec {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .kategoria-cimke {
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #34d399;
-            background-color: rgba(6, 78, 59, 0.5);
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-
-        .hely-neve {
-            margin: 8px 0 0 0;
-            font-size: 22px;
-            font-weight: bold;
-        }
-
-        .bezar-gomb {
-            background: none;
-            border: none;
-            color: #9ca3af;
-            font-size: 22px;
-            cursor: pointer;
-            padding: 0 4px;
-        }
-
-        .bezar-gomb:hover {
-            color: white;
-        }
-
-        .leiras-szoveg {
-            font-size: 14px;
-            color: #9ca3af;
-            margin-top: 14px;
-            line-height: 1.6;
-        }
-
-        .ikon-sor {
-            display: flex;
-            gap: 16px;
-            font-size: 14px;
-            border-top: 1px solid #374151;
-            border-bottom: 1px solid #374151;
-            padding: 14px 0;
-            margin: 20px 0;
-            color: #d1d5db;
-        }
-
-        .nav-gomb {
-            width: 100%;
-            background-color: #10b981;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.2s;
-        }
-
-        .nav-gomb:hover {
-            background-color: #059669;
-        }
+        .leiras-szoveg { font-size: 14px; color: #9ca3af; margin-top: 14px; line-height: 1.6; }
+        .ikon-sor { display: flex; gap: 16px; font-size: 14px; border-top: 1px solid #374151; border-bottom: 1px solid #374151; padding: 14px 0; margin: 20px 0; color: #d1d5db; }
+        .nav-gomb { width: 100%; background-color: #10b981; color: white; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <!-- 1. FELSŐ KERESŐ ÉS KATEGÓRIA SÁV -->
     <div class="kereso-kontener">
         <div class="kereso-sor">
             <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés név alapján (pl. Balaton...)" class="kereso-mezo">
@@ -225,10 +126,8 @@
         </div>
     </div>
 
-    <!-- 2. A TÉRKÉP HELYE -->
     <div id="map"></div>
 
-    <!-- 3. ALSÓ INFORMÁCIÓS PANEL -->
     <div id="detailPanel" class="info-panel">
         <div class="panel-csik" onclick="closePanel()"></div>
         <div class="panel-fejlec">
@@ -249,16 +148,14 @@
         <button id="navButton" class="nav-gomb">Útvonaltervezés (Google Maps)</button>
     </div>
 
-    <!-- JavaScript Könyvtárak betöltése -->
-    <script src="https://unpkg.com"></script>
+    <!-- JavaScript Könyvtár betöltése -->
     <script src="https://unpkg.com"></script>
 
     <script>
-        // --- TÉRKÉP ALAPBEÁLLÍTÁSOK ---
+        // TÉRKÉP LÉTREHOZÁSA
         const map = L.map('map', { zoomControl: true }).setView([47.1625, 19.5033], 7);
         let markerCsoport = L.layerGroup().addTo(map);
 
-        // Standard OpenStreetMap réteg betöltése (Sötétített térkép helyett ez biztosabban betölt minden hálózaton)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(map);
@@ -266,7 +163,6 @@
         let aktivaltKategoria = 'all'; 
         let mindenHely = []; 
 
-        // --- TESZT ADATOK GENERÁLÁSA ---
         function adatokBetoltese() {
             mindenHely = [
                 { id: 1, nev: "Balatonfüredi Prémium Kemping", kategoria: "camping", leiras: "Közvetlen vízparti kemping parcellákkal, modern vizesblokkal és saját stranddal a Balatonnál.", lat: 46.9522, lng: 17.8921 },
@@ -277,16 +173,13 @@
             terkepFrissites(mindenHely);
         }
 
-        // --- SEARCH & FILTER LOGIKA ---
         function keresesEsSzures() {
             const keresettSzo = document.getElementById('searchBar').value.toLowerCase();
-            
             const szurtHelyek = mindenHely.filter(hely => {
                 const egyezikKategoria = (aktivaltKategoria === 'all' || hely.kategoria === aktivaltKategoria);
                 const egyezikNev = hely.nev.toLowerCase().includes(keresettSzo);
                 return egyezikKategoria && egyezikNev;
             });
-
             terkepFrissites(szurtHelyek);
         }
 
@@ -300,4 +193,30 @@
             keresesEsSzures();
         }
 
-        // Térkép markerek frissítése
+        function terkepFrissites(helyek) {
+            markerCsoport.clearLayers();
+            helyek.forEach(hely => {
+                const marker = L.marker([hely.lat, hely.lng]).addTo(markerCsoport);
+                marker.on('click', () => openPanel(hely));
+            });
+        }
+
+        function openPanel(hely) {
+            document.getElementById('panelTitle').innerText = hely.nev;
+            document.getElementById('panelDescription').innerText = hely.leiras;
+            document.getElementById('panelCategory').innerText = hely.kategoria === 'camping' ? '⛺ Kemping' : hely.kategoria === 'stellplatz' ? '🚐 Stellplatz' : '🌲 Vadkemping';
+            
+            document.getElementById('navButton').onclick = () => {
+                window.open(`https://google.com{hely.lat},${hely.lng}`, '_blank');
+            };
+            document.getElementById('detailPanel').classList.add('nyitva');
+        }
+
+        function closePanel() {
+            document.getElementById('detailPanel').classList.remove('nyitva');
+        }
+
+        adatokBetoltese();
+    </script>
+</body>
+</html>
