@@ -5,121 +5,137 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>KempingZóna - Magyar kemping és Stellplatz térkép</title>
     
-    <!-- Ingyenes Leaflet térkép CSS és JS egy helyen -->
+    <!-- Térkép motor stíluslapja -->
     <link rel="stylesheet" href="https://unpkg.com" />
-    <script src="https://unpkg.com"></script>
     
     <style>
+        /* TELJES KÉPERNYŐS ELRENDEZÉS */
         html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-family: Arial, sans-serif;
             background-color: #111827;
             color: #ffffff;
         }
 
+        /* A TÉRKÉP KONTÉNERE */
         #map { 
             position: absolute;
             top: 0;
             bottom: 0;
             left: 0;
             right: 0;
-            width: 100% !important;
-            height: 100% !important;
+            width: 100%;
+            height: 100%;
             z-index: 1; 
-            background: #111827;
         }
 
+        /* FELSŐ KERESŐ DOBOZ */
         .kereso-kontener {
             position: absolute;
             top: 16px;
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
-            max-width: 420px;
+            max-width: 400px;
             z-index: 10;
-            background: rgba(31, 41, 55, 0.95);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: #1f2937;
             border: 1px solid #374151;
-            border-radius: 16px;
+            border-radius: 12px;
             padding: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.5);
         }
 
-        .kereso-sor { display: flex; gap: 8px; }
-
         .kereso-mezo {
-            flex-grow: 1;
+            width: 100%;
             background-color: #374151;
             border: 1px solid #4b5563;
             color: white;
-            border-radius: 12px;
-            padding: 12px 16px;
+            border-radius: 8px;
+            padding: 10px;
             font-size: 14px;
             outline: none;
-            width: 100%;
             box-sizing: border-box;
         }
 
-        .kereso-mezo:focus { border-color: #10b981; }
-
-        .gomb-sor { display: flex; gap: 8px; overflow-x: auto; margin-top: 12px; padding-bottom: 4px; }
-        .gomb-sor::-webkit-scrollbar { display: none; }
+        /* GOMBOK */
+        .gomb-sor {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            overflow-x: auto;
+        }
 
         .szuro-gomb {
-            background-color: #374151;
-            color: #d1d5db;
+            background-color: #4b5563;
+            color: white;
             border: none;
-            border-radius: 20px;
-            padding: 8px 16px;
+            border-radius: 15px;
+            padding: 6px 12px;
             font-size: 12px;
             cursor: pointer;
             white-space: nowrap;
-            transition: all 0.2s;
         }
 
-        .szuro-gomb.aktiv { background-color: #059669; color: white; font-weight: bold; }
+        .szuro-gomb.aktiv {
+            background-color: #10b981;
+            font-weight: bold;
+        }
 
+        /* ALSÓ PANEL */
         .info-panel {
             position: fixed;
             bottom: 0;
             left: 50%;
             transform: translate(-50%, 100%);
             width: 100%;
-            max-width: 480px;
+            max-width: 450px;
             background-color: #1f2937;
             border-top: 1px solid #374151;
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.5);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 -10px 15px rgba(0,0,0,0.5);
             transition: transform 0.3s ease-out;
             z-index: 20;
             box-sizing: border-box;
         }
 
-        .info-panel.nyitva { transform: translate(-50%, 0); }
-        .panel-csik { width: 48px; height: 6px; background-color: #4b5563; border-radius: 3px; margin: 0 auto 16px auto; cursor: pointer; }
-        .panel-fejlec { display: flex; justify-content: space-between; align-items: flex-start; }
-        .kategoria-cimke { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #34d399; background-color: rgba(6, 78, 59, 0.5); padding: 4px 8px; border-radius: 6px; }
-        .hely-neve { margin: 8px 0 0 0; font-size: 22px; font-weight: bold; }
-        .bezar-gomb { background: none; border: none; color: #9ca3af; font-size: 22px; cursor: pointer; }
+        .info-panel.nyitva {
+            transform: translate(-50%, 0);
+        }
 
-        .leiras-szoveg { font-size: 14px; color: #9ca3af; margin-top: 14px; line-height: 1.6; }
-        .ikon-sor { display: flex; gap: 16px; font-size: 14px; border-top: 1px solid #374151; border-bottom: 1px solid #374151; padding: 14px 0; margin: 20px 0; color: #d1d5db; }
-        .nav-gomb { width: 100%; background-color: #10b981; color: white; border: none; border-radius: 12px; padding: 16px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .bezar-gomb {
+            float: right;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .nav-gomb {
+            width: 100%;
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
 
+    <!-- KERESŐ ÉS GOMBOK -->
     <div class="kereso-kontener">
-        <div class="kereso-sor">
-            <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés név alapján (pl. Balaton...)" class="kereso-mezo">
-        </div>
+        <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés (pl. Balaton...)" class="kereso-mezo">
         <div class="gomb-sor">
             <button id="btn-all" onclick="kategoriaValasztas('all')" class="szuro-gomb aktiv">Mind</button>
             <button id="btn-camping" onclick="kategoriaValasztas('camping')" class="szuro-gomb">⛺ Kemping</button>
@@ -128,36 +144,27 @@
         </div>
     </div>
 
+    <!-- TÉRKÉP CONTÉNER -->
     <div id="map"></div>
 
+    <!-- ALSÓ INFORMÁCIÓS PANEL -->
     <div id="detailPanel" class="info-panel">
-        <div class="panel-csik" onclick="closePanel()"></div>
-        <div class="panel-fejlec">
-            <div>
-                <span id="panelCategory" class="kategoria-cimke">Kategória</span>
-                <h2 id="panelTitle" class="hely-neve">Kemping Neve</h2>
-            </div>
-            <button onclick="closePanel()" class="bezar-gomb">✕</button>
-        </div>
-        <p id="panelDescription" class="leiras-szoveg">Leírás...</p>
-        
-        <div class="ikon-sor">
-            <span>💧 Ivóvíz</span>
-            <span>🔌 Áram</span>
-            <span>🐾 Kutyabarát</span>
-        </div>
-
+        <button onclick="closePanel()" class="bezar-gomb">✕</button>
+        <h2 id="panelTitle" style="margin: 0; font-size: 18px;">Kemping Neve</h2>
+        <p id="panelDescription" style="color: #9ca3af; font-size: 13px; margin-top: 10px;">Leírás...</p>
         <button id="navButton" class="nav-gomb">Útvonaltervezés (Google Maps)</button>
     </div>
 
+    <!-- Térkép motor kódja -->
+    <script src="https://unpkg.com"></script>
+
     <script>
-        // TÉRKÉP INICIALIZÁLÁSA - Kicsit közelebbről indítunk
+        // Térkép beállítása Magyarországra
         const map = L.map('map', { zoomControl: false }).setView([47.1625, 19.5033], 7);
         let markerCsoport = L.layerGroup().addTo(map);
 
-        // Olyan térképréteget használunk, amit a Vercel garantáltan beenged
-        L.tileLayer('https://openstreetmap.org{z}/{x}/{y}.png', {
-            maxZoom: 19,
+        // Térképréteg betöltése HTTPS-en keresztül (A Vercel ezt garantáltan engedi)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
@@ -194,11 +201,11 @@
             keresesEsSzures();
         }
 
-        // JAVÍTÁS: Külső képi ikon helyett kódból rajzolt szép zöld köröket teszünk le, amit nem tilt le a szerver!
+        // JAVÍTÁS: Képfájlok helyett kódból rajzolt szép zöld köröket teszünk le, amit senki nem tud letiltani!
         function terkepFrissites(helyek) {
             markerCsoport.clearLayers();
             helyek.forEach(hely => {
-                const körMarker = L.circleMarker([hely.lat, hely.lng], {
+                const korMarker = L.circleMarker([hely.lat, hely.lng], {
                     radius: 10,
                     fillColor: "#10b981",
                     color: "#ffffff",
@@ -207,14 +214,13 @@
                     fillOpacity: 0.9
                 }).addTo(markerCsoport);
                 
-                körMarker.on('click', () => openPanel(hely));
+                korMarker.on('click', () => openPanel(hely));
             });
         }
 
         function openPanel(hely) {
             document.getElementById('panelTitle').innerText = hely.nev;
             document.getElementById('panelDescription').innerText = hely.leiras;
-            document.getElementById('panelCategory').innerText = hely.kategoria === 'camping' ? '⛺ Kemping' : hely.kategoria === 'stellplatz' ? '🚐 Stellplatz' : '🌲 Vadkemping';
             
             document.getElementById('navButton').onclick = () => {
                 window.open(`https://google.com{hely.lat},${hely.lng}`, '_blank');
@@ -230,3 +236,4 @@
     </script>
 </body>
 </html>
+
