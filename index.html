@@ -4,136 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>KempingZóna - Magyar kemping és Stellplatz térkép</title>
-    
-    <!-- Térkép motor stíluslapja -->
     <link rel="stylesheet" href="https://unpkg.com" />
-    
     <style>
-        /* TELJES KÉPERNYŐS ELRENDEZÉS */
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-            background-color: #111827;
-            color: #ffffff;
-        }
-
-        /* A TÉRKÉP KONTÉNERE */
-        #map { 
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1; 
-        }
-
-        /* FELSŐ KERESŐ DOBOZ */
-        .kereso-kontener {
-            position: absolute;
-            top: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 400px;
-            z-index: 10;
-            background: #1f2937;
-            border: 1px solid #374151;
-            border-radius: 12px;
-            padding: 12px;
-            box-shadow: 0 10px 15px rgba(0,0,0,0.5);
-        }
-
-        .kereso-mezo {
-            width: 100%;
-            background-color: #374151;
-            border: 1px solid #4b5563;
-            color: white;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 14px;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        /* GOMBOK */
-        .gomb-sor {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-            overflow-x: auto;
-        }
-
-        .szuro-gomb {
-            background-color: #4b5563;
-            color: white;
-            border: none;
-            border-radius: 15px;
-            padding: 6px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .szuro-gomb.aktiv {
-            background-color: #10b981;
-            font-weight: bold;
-        }
-
-        /* ALSÓ PANEL */
-        .info-panel {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translate(-50%, 100%);
-            width: 100%;
-            max-width: 450px;
-            background-color: #1f2937;
-            border-top: 1px solid #374151;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 -10px 15px rgba(0,0,0,0.5);
-            transition: transform 0.3s ease-out;
-            z-index: 20;
-            box-sizing: border-box;
-        }
-
-        .info-panel.nyitva {
-            transform: translate(-50%, 0);
-        }
-
-        .bezar-gomb {
-            float: right;
-            background: none;
-            border: none;
-            color: #9ca3af;
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        .nav-gomb {
-            width: 100%;
-            background-color: #10b981;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
-        }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background-color: #111827; color: #ffffff; }
+        #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; width: 100%; height: 100%; z-index: 1; }
+        .kereso-kontener { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 10; background: #1f2937; border: 1px solid #374151; border-radius: 12px; padding: 12px; box-shadow: 0 10px 15px rgba(0,0,0,0.5); }
+        .kereso-mezo { width: 100%; background-color: #374151; border: 1px solid #4b5563; color: white; border-radius: 8px; padding: 10px; font-size: 14px; outline: none; box-sizing: border-box; }
+        .gomb-sor { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; }
+        .szuro-gomb { background-color: #4b5563; color: white; border: none; border-radius: 15px; padding: 6px 12px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .szuro-gomb.aktiv { background-color: #10b981; font-weight: bold; }
+        .info-panel { position: fixed; bottom: 0; left: 50%; transform: translate(-50%, 100%); width: 100%; max-width: 450px; background-color: #1f2937; border-top: 1px solid #374151; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -10px 15px rgba(0,0,0,0.5); transition: transform 0.3s ease-out; z-index: 20; box-sizing: border-box; }
+        .info-panel.nyitva { transform: translate(-50%, 0); }
+        .bezar-gomb { float: right; background: none; border: none; color: #9ca3af; font-size: 20px; cursor: pointer; }
+        .nav-gomb { width: 100%; background-color: #10b981; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 15px; }
     </style>
 </head>
 <body>
-
-    <!-- KERESŐ ÉS GOMBOK -->
     <div class="kereso-kontener">
         <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés (pl. Balaton...)" class="kereso-mezo">
         <div class="gomb-sor">
@@ -143,34 +29,19 @@
             <button id="btn-nature" onclick="kategoriaValasztas('nature')" class="szuro-gomb">🌲 Vadkemping</button>
         </div>
     </div>
-
-    <!-- TÉRKÉP CONTÉNER -->
     <div id="map"></div>
-
-    <!-- ALSÓ INFORMÁCIÓS PANEL -->
     <div id="detailPanel" class="info-panel">
         <button onclick="closePanel()" class="bezar-gomb">✕</button>
         <h2 id="panelTitle" style="margin: 0; font-size: 18px;">Kemping Neve</h2>
         <p id="panelDescription" style="color: #9ca3af; font-size: 13px; margin-top: 10px;">Leírás...</p>
         <button id="navButton" class="nav-gomb">Útvonaltervezés (Google Maps)</button>
     </div>
-
-    <!-- Térkép motor kódja -->
     <script src="https://unpkg.com"></script>
-
     <script>
-        // Térkép beállítása Magyarországra
         const map = L.map('map', { zoomControl: false }).setView([47.1625, 19.5033], 7);
         let markerCsoport = L.layerGroup().addTo(map);
-
-        // Térképréteg betöltése HTTPS-en keresztül (A Vercel ezt garantáltan engedi)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
-
-        let aktivaltKategoria = 'all'; 
-        let mindenHely = []; 
-
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+        let aktivaltKategoria = 'all'; let mindenHely = [];
         function adatokBetoltese() {
             mindenHely = [
                 { id: 1, nev: "Balatonfüredi Prémium Kemping", kategoria: "camping", leiras: "Közvetlen vízparti kemping parcellákkal, modern vizesblokkal és saját stranddal a Balatonnál.", lat: 46.9522, lng: 17.8921 },
@@ -180,60 +51,38 @@
             ];
             terkepFrissites(mindenHely);
         }
-
         function keresesEsSzures() {
             const keresettSzo = document.getElementById('searchBar').value.toLowerCase();
             const szurtHelyek = mindenHely.filter(hely => {
                 const egyezikKategoria = (aktivaltKategoria === 'all' || hely.kategoria === aktivaltKategoria);
-                const egyezikNev = hely.nev.toLowerCase().includes(keresettSzo);
-                return egyezikKategoria && egyezikNev;
+                return egyezikKategoria && hely.nev.toLowerCase().includes(keresettSzo);
             });
             terkepFrissites(szurtHelyek);
         }
-
         function kategoriaValasztas(kat) {
             aktivaltKategoria = kat;
             ['all', 'camping', 'stellplatz', 'nature'].forEach(k => {
-                const btn = document.getElementById(`btn-${k}`);
-                if (k === kat) btn.classList.add('aktiv');
-                else btn.classList.remove('aktiv');
+                document.getElementById(`btn-${k}`).className = k === kat ? "szuro-gomb aktiv" : "szuro-gomb";
             });
             keresesEsSzures();
         }
-
-        // JAVÍTÁS: Képfájlok helyett kódból rajzolt szép zöld köröket teszünk le, amit senki nem tud letiltani!
         function terkepFrissites(helyek) {
             markerCsoport.clearLayers();
             helyek.forEach(hely => {
-                const korMarker = L.circleMarker([hely.lat, hely.lng], {
-                    radius: 10,
-                    fillColor: "#10b981",
-                    color: "#ffffff",
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.9
-                }).addTo(markerCsoport);
-                
-                korMarker.on('click', () => openPanel(hely));
+                L.circleMarker([hely.lat, hely.lng], { radius: 10, fillColor: "#10b981", color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.9 })
+                    .addTo(markerCsoport).on('click', () => openPanel(hely));
             });
         }
-
         function openPanel(hely) {
             document.getElementById('panelTitle').innerText = hely.nev;
             document.getElementById('panelDescription').innerText = hely.leiras;
-            
-            document.getElementById('navButton').onclick = () => {
-                window.open(`https://google.com{hely.lat},${hely.lng}`, '_blank');
-            };
+            document.getElementById('navButton').onclick = () => window.open(`https://google.com{hely.lat},${hely.lng}`, '_blank');
             document.getElementById('detailPanel').classList.add('nyitva');
         }
-
-        function closePanel() {
-            document.getElementById('detailPanel').classList.remove('nyitva');
-        }
-
+        function closePanel() { document.getElementById('detailPanel').classList.remove('nyitva'); }
         adatokBetoltese();
     </script>
 </body>
 </html>
+
 
