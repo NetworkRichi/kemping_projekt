@@ -5,80 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>KempingZóna - Magyar kemping térkép</title>
     <style>
-        /* ALAPOK */
         html, body {
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: #111827; color: #ffffff;
+            background-color: #0f172a; color: #ffffff;
         }
 
-        .fo-kontener {
-            display: flex; width: 100%; height: 100%;
-        }
+        .fo-kontener { display: flex; width: 100%; height: 100%; }
 
-        /* BAL OLDAL: A TÉRKÉP (Google Maps) */
+        /* BAL OLDAL: A DIGITÁLIS RADAR TÉRKÉP */
         .terkep-oldal {
-            flex-grow: 1; height: 100%; background: #1f2937; position: relative;
+            flex-grow: 1; height: 100%; background: #020617;
+            position: relative; display: flex; align-items: center; justify-content: center;
         }
 
-        iframe {
-            width: 100%; height: 100%; border: none;
+        /* Digitális rácsháló a háttérben */
+        .terkep-oldal::before {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(16, 185, 129, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px; z-index: 1;
+        }
+
+        .radar-kor {
+            position: absolute; border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 50%; z-index: 1; pointer-events: none;
+        }
+
+        /* MAGYARORSZÁG STILIZÁLT KÖRVONALA */
+        .magyar-svg {
+            width: 85%; height: 75%; z-index: 2; position: relative;
+        }
+
+        /* TÉRKÉP PONTOK (MARKEREK) */
+        .terkep-pont {
+            position: absolute; width: 18px; height: 18px;
+            background-color: #10b981; border: 3px solid #ffffff;
+            border-radius: 50%; cursor: pointer; z-index: 5;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px #10b981;
+            transition: all 0.3s ease;
+        }
+
+        .terkep-pont::after {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            border: 2px solid #10b981; border-radius: 50%;
+            animation: pulzal 2s infinite; left: -2px; top: -2px;
+        }
+
+        @keyframes pulzal {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+
+        .terkep-pont.aktiv {
+            background-color: #ef4444; box-shadow: 0 0 20px #ef4444;
         }
 
         /* JOBB OLDAL: A KERESŐ ÉS LISTA */
         .lista-oldal {
             width: 380px; min-width: 320px; height: 100%;
-            background-color: #1f2937; border-left: 1px solid #374151;
-            display: flex; flex-direction: column; box-sizing: border-box;
-            z-index: 10;
+            background-color: #1e293b; border-left: 1px solid #334155;
+            display: flex; flex-direction: column; box-sizing: border-box; z-index: 10;
         }
 
-        .kereso-resz {
-            padding: 20px; border-bottom: 1px solid #374151;
-        }
-
+        .kereso-resz { padding: 20px; border-bottom: 1px solid #334155; }
         .kereso-mezo {
-            width: 100%; background-color: #374151; border: 1px solid #4b5563;
+            width: 100%; background-color: #0f172a; border: 1px solid #475569;
             color: white; border-radius: 8px; padding: 12px; font-size: 14px;
             outline: none; box-sizing: border-box;
         }
-
         .kereso-mezo:focus { border-color: #10b981; }
 
-        /* KEMPINGSZŰRŐ KÁRTYÁK */
-        .kemping-lista {
-            flex-grow: 1; overflow-y: auto; padding: 10px 20px;
-        }
-
+        .kemping-lista { flex-grow: 1; overflow-y: auto; padding: 10px 20px; }
+        
         .kemping-kartya {
-            background-color: #374151; border: 1px solid #4b5563;
+            background-color: #334155; border: 1px solid #475569;
             border-radius: 10px; padding: 16px; margin-bottom: 12px;
             cursor: pointer; transition: all 0.2s;
         }
-
-        .kemping-kartya:hover {
-            border-color: #10b981; background-color: #4b5563;
-        }
-
-        .kemping-kartya.aktiv {
-            border-color: #10b981; background-color: rgba(16, 185, 129, 0.1);
-        }
+        .kemping-kartya:hover { border-color: #10b981; background-color: #475569; }
+        .kemping-kartya.aktiv { border-color: #10b981; background-color: rgba(16, 185, 129, 0.15); }
 
         .kemping-nev { margin: 0 0 6px 0; font-size: 16px; font-weight: bold; }
-        .kemping-kat { font-size: 11px; color: #10b981; text-transform: uppercase; font-weight: bold; }
-        .kemping-leiras { font-size: 13px; color: #9ca3af; margin-top: 6px; line-clamp: 2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .kemping-kat { font-size: 11px; color: #34d399; text-transform: uppercase; font-weight: bold; }
+        .kemping-leiras { font-size: 13px; color: #94a3b8; margin-top: 6px; }
 
         .nav-gomb {
             display: inline-block; background-color: #10b981; color: white;
-            padding: 6px 12px; border-radius: 6px; text-decoration: none;
-            font-size: 12px; font-weight: bold; margin-top: 10px;
+            padding: 8px 14px; border-radius: 6px; text-decoration: none;
+            font-size: 12px; font-weight: bold; margin-top: 12px; transition: background 0.2s;
         }
+        .nav-gomb:hover { background-color: #059669; }
 
-        /* MOBILBARÁT NÉZET */
+        /* MOBIL NÉZET */
         @media (max-width: 768px) {
             .fo-kontener { flex-direction: column-reverse; }
-            .lista-oldal { width: 100%; height: 45%; }
-            .terkep-oldal { height: 55%; }
+            .lista-oldal { width: 100%; height: 50%; }
+            .terkep-oldal { height: 50%; }
         }
     </style>
 </head>
@@ -87,47 +111,58 @@
     <div class="fo-kontener">
         
         <!-- 1. TÉRKÉP OLDAL -->
-        <div class="terkep-oldal">
-            <!-- Az alapértelmezett térkép Magyarországra mutat -->
-            <iframe id="googleMap" src="https://google.com"></iframe>
+        <div class="terkep-oldal" id="terkepPlacc">
+            <!-- Radar körök dekorációnak -->
+            <div class="radar-kor" style="width: 200px; height: 200px;"></div>
+            <div class="radar-kor" style="width: 400px; height: 400px;"></div>
+            
+            <!-- Magyarország stilizált digitális körvonala (SVG) -->
+            <svg class="magyar-svg" viewBox="0 0 500 300" xmlns="http://w3.org">
+                <path d="M50,120 Q120,60 250,70 Q380,50 450,110 Q480,160 440,210 Q350,250 250,230 Q120,260 60,200 Q30,160 50,120 Z" 
+                      fill="none" stroke="rgba(16, 185, 129, 0.3)" stroke-width="3" stroke-dasharray="5,5"/>
+            </svg>
+
+            <!-- Ide rakja be a JS a gombokat a koordináták alapján -->
         </div>
 
         <!-- 2. KERESŐ ÉS LISTA OLDAL -->
         <div class="lista-oldal">
             <div class="kereso-resz">
-                <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés név alapján..." class="kereso-mezo">
+                <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés név alapján (pl. Balaton...)" class="kereso-mezo">
             </div>
-            
-            <div class="kemping-lista" id="listaKontener">
-                <!-- Ide pakolja be a JavaScript a helyeket -->
-            </div>
+            <div class="kemping-lista" id="listaKontener"></div>
         </div>
 
     </div>
 
     <script>
-        // ADATBÁZIS ALAPOK
+        // ADATBÁZIS (Százalékos elhelyezkedéssel a digitális térképen)
         const mindenHely = [
-            { id: 1, nev: "Balatonfüredi Prémium Kemping", kategoria: "⛺ Kemping", leiras: "Közvetlen vízparti kemping parcellákkal, modern vizesblokkal és saját stranddal.", lat: 46.9522, lng: 17.8921, q: "Balatonfuredi+Premium+Camping" },
-            { id: 2, nev: "Dunakanyar Stellplatz", kategoria: "🚐 Stellplatz", leiras: "Automata kapus, elkerített lakóautó parkoló áramcsatlakozással és szürkevíz ürítéssel.", lat: 47.7845, lng: 18.9652, q: "Szob+Stellplatz" },
-            { id: 3, nev: "Mátrai Nomád Vadkemping", kategoria: "🌲 Vadkemping", leiras: "Gyönyörű erdei tisztás a magasan fekvő részeken, teljesen nomád körülmények között.", lat: 47.8825, lng: 19.9345, q: "Galyateto" },
-            { id: 4, nev: "Szegedi Tisza-parti Kemping", kategoria: "⛺ Kemping", leiras: "Fás, árnyékos kemping a Tisza folyó közvetlen közelében, pár percre a belvárostól.", lat: 46.2530, lng: 20.1482, q: "Szegedi+Tiszaparti+Camping" }
+            { id: 1, nev: "Balatonfüredi Prémium Kemping", kategoria: "⛺ Kemping", leiras: "Közvetlen vízparti kemping parcellákkal, modern vizesblokkal és saját stranddal.", top: "55%", left: "30%", lat: 46.9522, lng: 17.8921 },
+            { id: 2, nev: "Dunakanyar Stellplatz", kategoria: "🚐 Stellplatz", leiras: "Automata kapus, elkerített lakóautó parkoló áramcsatlakozással.", top: "35%", left: "50%", lat: 47.7845, lng: 18.9652 },
+            { id: 3, nev: "Mátrai Nomád Vadkemping", kategoria: "🌲 Vadkemping", leiras: "Gyönyörű erdei tisztás a magasan fekvő részeken, teljesen nomád körülmények között.", top: "33%", left: "65%", lat: 47.8825, lng: 19.9345 },
+            { id: 4, nev: "Szegedi Tisza-parti Kemping", kategoria: "⛺ Kemping", leiras: "Fás, árnyékos kemping a Tisza folyó közvetlen közelében, közel a belvároshoz.", top: "75%", left: "68%", lat: 46.2530, lng: 20.1482 }
         ];
 
-        // Oldal indulásakor kirajzoljuk a listát
-        function listaKirajzolas(helyek) {
-            const kontener = document.getElementById('listaKontener');
-            kontener.innerHTML = ''; // Kiürítés
+        // LISTA ÉS PONTOK KIRAJZOLÁSA
+        function feluletFrissites(helyek) {
+            const listaKontener = document.getElementById('listaKontener');
+            const terkepPlacc = document.getElementById('terkepPlacc');
+            
+            // Tisztítás, de a radar köröket és SVG-t megtartjuk
+            document.querySelectorAll('.terkep-pont').forEach(p => p.remove());
+            listaKontener.innerHTML = '';
 
             if(helyek.length === 0) {
-                kontener.innerHTML = '<p style="color:#9ca3af; text-align:center; margin-top:20px;">Nincs találat...</p>';
+                listaKontener.innerHTML = '<p style="color:#94a3b8; text-align:center; margin-top:20px;">Nincs találat...</p>';
                 return;
             }
 
             helyek.forEach(hely => {
+                // 1. Kártya létrehozása a listába
                 const kartya = document.createElement('div');
                 kartya.className = 'kemping-kartya';
-                kartya.onclick = () => terkepUgras(hely.q, kartya);
+                kartya.id = `kartya-${hely.id}`;
                 
                 kartya.innerHTML = `
                     <span class="kemping-kat">${hely.kategoria}</span>
@@ -135,31 +170,48 @@
                     <p class="kemping-leiras">${hely.leiras}</p>
                     <a class="nav-gomb" href="https://google.com{hely.lat},${hely.lng}" target="_blank">Google Navigáció</a>
                 `;
-                kontener.appendChild(kartya);
+                
+                // 2. Pont rögzítése a térképre
+                const pont = document.createElement('div');
+                pont.className = 'terkep-pont';
+                pont.id = `pont-${hely.id}`;
+                pont.style.top = hely.top;
+                pont.style.left = hely.left;
+
+                // Összekötjük az interakciókat (ha a pontra kattint, ugorjon a kártyára és fordítva)
+                kartya.onclick = () => aktivalas(hely.id);
+                pont.onclick = () => aktivalas(hely.id);
+
+                listaKontener.appendChild(kartya);
+                terkepPlacc.appendChild(pont);
             });
         }
 
-        // TÉRKÉP IRÁNYÍTÁSA
-        function terkepUgras(keresoszo, elem) {
-            // Eltávolítjuk a többi kártyáról az aktív színt, és rárakjuk erre
-            const kartyak = document.querySelectorAll('.kemping-kartya');
-            kartyak.forEach(k => k.classList.remove('aktiv'));
-            elem.classList.add('aktiv');
+        function aktivalas(id) {
+            // Összes alaphelyzetbe
+            document.querySelectorAll('.kemping-kartya').forEach(k => k.classList.remove('aktiv'));
+            document.querySelectorAll('.terkep-pont').forEach(p => p.removeClassName ? p.removeClassName('aktiv') : p.classList.remove('aktiv'));
 
-            // Átírjuk az iframe linkjét, a Google Maps azonnal oda ugrik és rázoomol!
-            const ujTerkepLink = `https://google.com{keresoszo}&t=&z=14&ie=UTF-8&iwloc=&output=embed`;
-            document.getElementById('googleMap').src = ujTerkepLink;
+            // Kiválasztott aktiválása
+            const aktivKartya = document.getElementById(`kartya-${id}`);
+            const aktivPont = document.getElementById(`pont-${id}`);
+            
+            if(aktivKartya && aktivPont) {
+                aktivKartya.classList.add('aktiv');
+                aktivPont.classList.add('aktiv');
+                aktivKartya.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
 
         // KERESŐ MOTOR
         function keresesEsSzures() {
             const szo = document.getElementById('searchBar').value.toLowerCase();
             const szurt = mindenHely.filter(hely => hely.nev.toLowerCase().includes(szo));
-            listaKirajzolas(szurt);
+            feluletFrissites(szurt);
         }
 
-        // Start
-        listaKirajzolas(mindenHely);
+        // Indítás
+        feluletFrissites(mindenHely);
     </script>
 </body>
 </html>
