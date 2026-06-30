@@ -3,86 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>KempingZóna - Magyar kemping és Stellplatz térkép</title>
-    <link rel="stylesheet" href="https://unpkg.com" />
+    <title>KempingZóna - Magyar kemping térkép</title>
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; background-color: #111827; color: #ffffff; }
-        #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; width: 100%; height: 100%; z-index: 1; }
-        .kereso-kontener { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 10; background: #1f2937; border: 1px solid #374151; border-radius: 12px; padding: 12px; box-shadow: 0 10px 15px rgba(0,0,0,0.5); }
-        .kereso-mezo { width: 100%; background-color: #374151; border: 1px solid #4b5563; color: white; border-radius: 8px; padding: 10px; font-size: 14px; outline: none; box-sizing: border-box; }
-        .gomb-sor { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; }
-        .szuro-gomb { background-color: #4b5563; color: white; border: none; border-radius: 15px; padding: 6px 12px; font-size: 12px; cursor: pointer; white-space: nowrap; }
-        .szuro-gomb.aktiv { background-color: #10b981; font-weight: bold; }
-        .info-panel { position: fixed; bottom: 0; left: 50%; transform: translate(-50%, 100%); width: 100%; max-width: 450px; background-color: #1f2937; border-top: 1px solid #374151; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -10px 15px rgba(0,0,0,0.5); transition: transform 0.3s ease-out; z-index: 20; box-sizing: border-box; }
-        .info-panel.nyitva { transform: translate(-50%, 0); }
-        .bezar-gomb { float: right; background: none; border: none; color: #9ca3af; font-size: 20px; cursor: pointer; }
-        .nav-gomb { width: 100%; background-color: #10b981; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        /* ALAPOK */
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #111827; color: #ffffff;
+        }
+
+        .fo-kontener {
+            display: flex; width: 100%; height: 100%;
+        }
+
+        /* BAL OLDAL: A TÉRKÉP (Google Maps) */
+        .terkep-oldal {
+            flex-grow: 1; height: 100%; background: #1f2937; position: relative;
+        }
+
+        iframe {
+            width: 100%; height: 100%; border: none;
+        }
+
+        /* JOBB OLDAL: A KERESŐ ÉS LISTA */
+        .lista-oldal {
+            width: 380px; min-width: 320px; height: 100%;
+            background-color: #1f2937; border-left: 1px solid #374151;
+            display: flex; flex-direction: column; box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .kereso-resz {
+            padding: 20px; border-bottom: 1px solid #374151;
+        }
+
+        .kereso-mezo {
+            width: 100%; background-color: #374151; border: 1px solid #4b5563;
+            color: white; border-radius: 8px; padding: 12px; font-size: 14px;
+            outline: none; box-sizing: border-box;
+        }
+
+        .kereso-mezo:focus { border-color: #10b981; }
+
+        /* KEMPINGSZŰRŐ KÁRTYÁK */
+        .kemping-lista {
+            flex-grow: 1; overflow-y: auto; padding: 10px 20px;
+        }
+
+        .kemping-kartya {
+            background-color: #374151; border: 1px solid #4b5563;
+            border-radius: 10px; padding: 16px; margin-bottom: 12px;
+            cursor: pointer; transition: all 0.2s;
+        }
+
+        .kemping-kartya:hover {
+            border-color: #10b981; background-color: #4b5563;
+        }
+
+        .kemping-kartya.aktiv {
+            border-color: #10b981; background-color: rgba(16, 185, 129, 0.1);
+        }
+
+        .kemping-nev { margin: 0 0 6px 0; font-size: 16px; font-weight: bold; }
+        .kemping-kat { font-size: 11px; color: #10b981; text-transform: uppercase; font-weight: bold; }
+        .kemping-leiras { font-size: 13px; color: #9ca3af; margin-top: 6px; line-clamp: 2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        .nav-gomb {
+            display: inline-block; background-color: #10b981; color: white;
+            padding: 6px 12px; border-radius: 6px; text-decoration: none;
+            font-size: 12px; font-weight: bold; margin-top: 10px;
+        }
+
+        /* MOBILBARÁT NÉZET */
+        @media (max-width: 768px) {
+            .fo-kontener { flex-direction: column-reverse; }
+            .lista-oldal { width: 100%; height: 45%; }
+            .terkep-oldal { height: 55%; }
+        }
     </style>
 </head>
 <body>
-    <div class="kereso-kontener">
-        <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés (pl. Balaton...)" class="kereso-mezo">
-        <div class="gomb-sor">
-            <button id="btn-all" onclick="kategoriaValasztas('all')" class="szuro-gomb aktiv">Mind</button>
-            <button id="btn-camping" onclick="kategoriaValasztas('camping')" class="szuro-gomb">⛺ Kemping</button>
-            <button id="btn-stellplatz" onclick="kategoriaValasztas('stellplatz')" class="szuro-gomb">🚐 Stellplatz</button>
-            <button id="btn-nature" onclick="kategoriaValasztas('nature')" class="szuro-gomb">🌲 Vadkemping</button>
+
+    <div class="fo-kontener">
+        
+        <!-- 1. TÉRKÉP OLDAL -->
+        <div class="terkep-oldal">
+            <!-- Az alapértelmezett térkép Magyarországra mutat -->
+            <iframe id="googleMap" src="https://google.com"></iframe>
         </div>
+
+        <!-- 2. KERESŐ ÉS LISTA OLDAL -->
+        <div class="lista-oldal">
+            <div class="kereso-resz">
+                <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés név alapján..." class="kereso-mezo">
+            </div>
+            
+            <div class="kemping-lista" id="listaKontener">
+                <!-- Ide pakolja be a JavaScript a helyeket -->
+            </div>
+        </div>
+
     </div>
-    <div id="map"></div>
-    <div id="detailPanel" class="info-panel">
-        <button onclick="closePanel()" class="bezar-gomb">✕</button>
-        <h2 id="panelTitle" style="margin: 0; font-size: 18px;">Kemping Neve</h2>
-        <p id="panelDescription" style="color: #9ca3af; font-size: 13px; margin-top: 10px;">Leírás...</p>
-        <button id="navButton" class="nav-gomb">Útvonaltervezés (Google Maps)</button>
-    </div>
-    <script src="https://unpkg.com"></script>
+
     <script>
-        const map = L.map('map', { zoomControl: false }).setView([47.1625, 19.5033], 7);
-        let markerCsoport = L.layerGroup().addTo(map);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-        let aktivaltKategoria = 'all'; let mindenHely = [];
-        function adatokBetoltese() {
-            mindenHely = [
-                { id: 1, nev: "Balatonfüredi Prémium Kemping", kategoria: "camping", leiras: "Közvetlen vízparti kemping parcellákkal, modern vizesblokkal és saját stranddal a Balatonnál.", lat: 46.9522, lng: 17.8921 },
-                { id: 2, nev: "Dunakanyar Stellplatz", kategoria: "stellplatz", leiras: "Automata kapus, elkerített lakóautó parkoló áramcsatlakozással és szürkevíz ürítéssel.", lat: 47.7845, lng: 18.9652 },
-                { id: 3, nev: "Mátrai Nomád Vadkemping hely", kategoria: "nature", leiras: "Gyönyörű erdei tisztás a magasan fekvő részeken, teljesen nomád körülmények között, térerő nélkül.", lat: 47.8825, lng: 19.9345 },
-                { id: 4, nev: "Szegedi Tisza-parti Kemping", kategoria: "camping", leiras: "Fás, árnyékos kemping a Tisza folyó közvetlen közelében, pár percre a belvárostól.", lat: 46.2530, lng: 20.1482 }
-            ];
-            terkepFrissites(mindenHely);
-        }
-        function keresesEsSzures() {
-            const keresettSzo = document.getElementById('searchBar').value.toLowerCase();
-            const szurtHelyek = mindenHely.filter(hely => {
-                const egyezikKategoria = (aktivaltKategoria === 'all' || hely.kategoria === aktivaltKategoria);
-                return egyezikKategoria && hely.nev.toLowerCase().includes(keresettSzo);
-            });
-            terkepFrissites(szurtHelyek);
-        }
-        function kategoriaValasztas(kat) {
-            aktivaltKategoria = kat;
-            ['all', 'camping', 'stellplatz', 'nature'].forEach(k => {
-                document.getElementById(`btn-${k}`).className = k === kat ? "szuro-gomb aktiv" : "szuro-gomb";
-            });
-            keresesEsSzures();
-        }
-        function terkepFrissites(helyek) {
-            markerCsoport.clearLayers();
+        // ADATBÁZIS ALAPOK
+        const mindenHely = [
+            { id: 1, nev: "Balatonfüredi Prémium Kemping", kategoria: "⛺ Kemping", leiras: "Közvetlen vízparti kemping parcellákkal, modern vizesblokkal és saját stranddal.", lat: 46.9522, lng: 17.8921, q: "Balatonfuredi+Premium+Camping" },
+            { id: 2, nev: "Dunakanyar Stellplatz", kategoria: "🚐 Stellplatz", leiras: "Automata kapus, elkerített lakóautó parkoló áramcsatlakozással és szürkevíz ürítéssel.", lat: 47.7845, lng: 18.9652, q: "Szob+Stellplatz" },
+            { id: 3, nev: "Mátrai Nomád Vadkemping", kategoria: "🌲 Vadkemping", leiras: "Gyönyörű erdei tisztás a magasan fekvő részeken, teljesen nomád körülmények között.", lat: 47.8825, lng: 19.9345, q: "Galyateto" },
+            { id: 4, nev: "Szegedi Tisza-parti Kemping", kategoria: "⛺ Kemping", leiras: "Fás, árnyékos kemping a Tisza folyó közvetlen közelében, pár percre a belvárostól.", lat: 46.2530, lng: 20.1482, q: "Szegedi+Tiszaparti+Camping" }
+        ];
+
+        // Oldal indulásakor kirajzoljuk a listát
+        function listaKirajzolas(helyek) {
+            const kontener = document.getElementById('listaKontener');
+            kontener.innerHTML = ''; // Kiürítés
+
+            if(helyek.length === 0) {
+                kontener.innerHTML = '<p style="color:#9ca3af; text-align:center; margin-top:20px;">Nincs találat...</p>';
+                return;
+            }
+
             helyek.forEach(hely => {
-                L.circleMarker([hely.lat, hely.lng], { radius: 10, fillColor: "#10b981", color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.9 })
-                    .addTo(markerCsoport).on('click', () => openPanel(hely));
+                const kartya = document.createElement('div');
+                kartya.className = 'kemping-kartya';
+                kartya.onclick = () => terkepUgras(hely.q, kartya);
+                
+                kartya.innerHTML = `
+                    <span class="kemping-kat">${hely.kategoria}</span>
+                    <h3 class="kemping-nev">${hely.nev}</h3>
+                    <p class="kemping-leiras">${hely.leiras}</p>
+                    <a class="nav-gomb" href="https://google.com{hely.lat},${hely.lng}" target="_blank">Google Navigáció</a>
+                `;
+                kontener.appendChild(kartya);
             });
         }
-        function openPanel(hely) {
-            document.getElementById('panelTitle').innerText = hely.nev;
-            document.getElementById('panelDescription').innerText = hely.leiras;
-            document.getElementById('navButton').onclick = () => window.open(`https://google.com{hely.lat},${hely.lng}`, '_blank');
-            document.getElementById('detailPanel').classList.add('nyitva');
+
+        // TÉRKÉP IRÁNYÍTÁSA
+        function terkepUgras(keresoszo, elem) {
+            // Eltávolítjuk a többi kártyáról az aktív színt, és rárakjuk erre
+            const kartyak = document.querySelectorAll('.kemping-kartya');
+            kartyak.forEach(k => k.classList.remove('aktiv'));
+            elem.classList.add('aktiv');
+
+            // Átírjuk az iframe linkjét, a Google Maps azonnal oda ugrik és rázoomol!
+            const ujTerkepLink = `https://google.com{keresoszo}&t=&z=14&ie=UTF-8&iwloc=&output=embed`;
+            document.getElementById('googleMap').src = ujTerkepLink;
         }
-        function closePanel() { document.getElementById('detailPanel').classList.remove('nyitva'); }
-        adatokBetoltese();
+
+        // KERESŐ MOTOR
+        function keresesEsSzures() {
+            const szo = document.getElementById('searchBar').value.toLowerCase();
+            const szurt = mindenHely.filter(hely => hely.nev.toLowerCase().includes(szo));
+            listaKirajzolas(szurt);
+        }
+
+        // Start
+        listaKirajzolas(mindenHely);
     </script>
 </body>
 </html>
+
 
 
