@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>KempingZóna - Magyar kemping térkép</title>
     
-    <!-- Hivatalos Mapbox GL JS stíluslap és kód -->
+    <!-- FIX: Hajszálpontosan egyező v3.3.0-ás Mapbox könyvtárak -->
     <link href="https://mapbox.com" rel="stylesheet" />
     <script src="https://mapbox.com"></script>
     
@@ -18,28 +18,27 @@
 
         .fo-kontener { display: flex; width: 100%; height: 100%; }
 
-        /* BAL OLDAL: A VALÓDI MAPBOX TÉRKÉP */
+        /* BAL OLDAL: A TÉRKÉP */
         .terkep-oldal {
             flex-grow: 1; height: 100%; background: #020617; position: relative;
         }
 
         #map { width: 100%; height: 100%; }
 
-        /* JOBB OLDAL: A KERESŐ ÉS LISTA */
+        /* JOBB OLDAL: LISTA */
         .lista-oldal {
             width: 380px; min-width: 320px; height: 100%;
             background-color: #1e293b; border-left: 1px solid #334155;
             display: flex; flex-direction: column; box-sizing: border-box; z-index: 10;
         }
 
-        .kereso-resz { padding: 20px; border-bottom: 1px solid #334155; }
+        .kereso-resz { padding: 20px; border-bottom: 1px solid #334155; background-color: #0f172a; }
         
         .kereso-mezo {
-            width: 100%; background-color: #0f172a; border: 1px solid #475569;
+            width: 100%; background-color: #1e293b; border: 1px solid #475569;
             color: white; border-radius: 8px; padding: 12px; font-size: 14px;
             outline: none; box-sizing: border-box;
         }
-        .kereso-mezo:focus { border-color: #10b981; }
 
         .kemping-lista { flex-grow: 1; overflow-y: auto; padding: 10px 20px; }
         
@@ -48,7 +47,7 @@
             border-radius: 10px; padding: 16px; margin-bottom: 12px;
             cursor: pointer; transition: all 0.2s;
         }
-        .kemping-kartya:hover { border-color: #10b981; background-color: #475569; }
+        .kemping-kartya:hover { border-color: #10b981; }
         .kemping-kartya.aktiv { border-color: #10b981; background-color: rgba(16, 185, 129, 0.15); }
 
         .kemping-nev { margin: 0 0 6px 0; font-size: 16px; font-weight: bold; }
@@ -58,21 +57,19 @@
         .nav-gomb {
             display: inline-block; background-color: #10b981; color: white;
             padding: 8px 14px; border-radius: 6px; text-decoration: none;
-            font-size: 12px; font-weight: bold; margin-top: 12px; transition: background 0.2s;
+            font-size: 12px; font-weight: bold; margin-top: 12px;
         }
-        .nav-gomb:hover { background-color: #059669; }
 
-        /* EGYEDI PRÉMIUM TÉRKÉP JELÖLŐ (MARKER) STÍLUS */
+        /* EGYEDI TÉRKÉP JELÖLŐ (MARKER) DIZÁJN */
         .custom-marker {
             width: 14px; height: 14px; background-color: #10b981;
             border: 3px solid #ffffff; border-radius: 50%; cursor: pointer;
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.8); transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
         }
         .custom-marker.aktiv {
-            background-color: #ef4444; box-shadow: 0 0 15px #ef4444; width: 18px; height: 18px;
+            background-color: #ef4444; box-shadow: 0 0 15px #ef4444; width: 16px; height: 16px;
         }
 
-        /* MOBIL NÉZET */
         @media (max-width: 768px) {
             .fo-kontener { flex-direction: column-reverse; }
             .lista-oldal { width: 100%; height: 50%; }
@@ -83,85 +80,67 @@
 <body>
 
     <div class="fo-kontener">
-        
-        <!-- 1. VALÓDI TÉRKÉP REFI -->
-        <div class="terkep-oldal">
-            <div id="map"></div>
-        </div>
-
-        <!-- 2. KERESŐ ÉS LISTA REFI -->
+        <div class="terkep-oldal"><div id="map"></div></div>
         <div class="lista-oldal">
             <div class="kereso-resz">
-                <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés név alapján (pl. Balaton...)" class="kereso-mezo">
+                <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés név alapján..." class="kereso-mezo">
             </div>
             <div class="kemping-lista" id="listaKontener"></div>
         </div>
-
     </div>
 
     <script>
-        // BEÉPÍTETT HITELESÍTÉS A TE SAJÁT TOKENEDDEL
+        // A TE SAJÁT MAPBOX TOKENED
         mapboxgl.accessToken = 'pk.eyJ1IjoibmV0d29yazI1MTUiLCJhIjoiY21yMmJxcTJrMDNpaDJ6c2NmdTBhcmszeSJ9.2QmI9wdZSKr0Cs69oGlBiA';
 
-        // TÉRKÉP LÉTREHOZÁSA (Sötét navigációs autós dizájn)
+        // TÉRKÉP LÉTREHOZÁSA (A park4night által is használt sötét navigációs térkép stílus)
         const map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/navigation-night-v1', // park4night típusú sötét dizájn
-            center: [19.5033, 47.1625], // Magyarország közepe [Hosszúság, Szélesség] - figyelem, a Mapboxnál fordítva van!
+            style: 'mapbox://styles/mapbox/navigation-night-v1', 
+            center: [19.5033, 47.1625], // Magyarország közepe
             zoom: 6.8
         });
 
-        // IGAZI JELÖLŐK TÁROLÓJA
         let aktualisMarkerek = [];
-
-        // VALÓS GPS ADATOK
         const mindenHely = [
             { id: 1, nev: "Balatonfüredi Prémium Kemping", kategoria: "⛺ Kemping", leiras: "Közvetlen vízparti kemping parcellákkal, modern vizesblokkal és saját stranddal.", lat: 46.9522, lng: 17.8921 },
-            { id: 2, nev: "Dunakanyar Stellplatz", kategoria: "🚐 Stellplatz", leiras: "Automata kapus, elkerített lakóautó parkoló áramcsatlakozással és szürkevíz ürítéssel.", lat: 47.7845, lng: 18.9652 },
+            { id: 2, nev: "Dunakanyar Stellplatz", kategoria: "🚐 Stellplatz", leiras: "Automata kapus, elkerített lakóautó parkoló áramcsatlakozással.", lat: 47.7845, lng: 18.9652 },
             { id: 3, nev: "Mátrai Nomád Vadkemping", kategoria: "🌲 Vadkemping", leiras: "Gyönyörű erdei tisztás a magasan fekvő részeken, teljesen nomád körülmények között.", lat: 47.8825, lng: 19.9345 },
             { id: 4, nev: "Szegedi Tisza-parti Kemping", kategoria: "⛺ Kemping", leiras: "Fás, árnyékos kemping a Tisza folyó közvetlen közelében, közel a belvároshoz.", lat: 46.2530, lng: 20.1482 }
         ];
 
-        // FELÜLET ÉS MARKER FRISSÍTÉS
         function feluletFrissites(helyek) {
             const listaKontener = document.getElementById('listaKontener');
             listaKontener.innerHTML = '';
-
-            // Régi markerek letakarítása a térképről
             aktualisMarkerek.forEach(m => m.remove());
             aktualisMarkerek = [];
 
             if(helyek.length === 0) {
-                listaKontener.innerHTML = '<p style="color:#94a3b8; text-align:center; margin-top:20px;">Nincs találat...</p>';
+                listaKontener.innerHTML = '<p style="text-align:center; margin-top:20px; color:#94a3b8;">Nincs találat...</p>';
                 return;
             }
 
             helyek.forEach(hely => {
-                // 1. Jobb oldali kártya generálása
                 const kartya = document.createElement('div');
                 kartya.className = 'kemping-kartya';
                 kartya.id = `kartya-${hely.id}`;
-                
                 kartya.innerHTML = `
                     <span class="kemping-kat">${hely.kategoria}</span>
                     <h3 class="kemping-nev">${hely.nev}</h3>
                     <p class="kemping-leiras">${hely.leiras}</p>
-                    <a class="nav-gomb" href="https://google.com{hely.lat},${hely.lng}" target="_blank">Google Navigáció</a>
+                    <a class="nav-gomb" href="https://google.com{hely.lat},${hely.lng}" target="_blank">Navigáció</a>
                 `;
 
-                // 2. Egyedi HTML elem létrehozása a térképes markernek
                 const el = document.createElement('div');
                 el.className = 'custom-marker';
                 el.id = `marker-${hely.id}`;
 
-                // Markerek felrakása a térképre az IGAZI [Hosszúság, Szélesség] szerint
                 const marker = new mapboxgl.Marker(el)
                     .setLngLat([hely.lng, hely.lat])
                     .addTo(map);
                 
                 aktualisMarkerek.push(marker);
 
-                // Kattintási események összekötése
                 kartya.onclick = () => aktivalas(hely.id, hely.lng, hely.lat);
                 el.onclick = () => aktivalas(hely.id, hely.lng, hely.lat);
 
@@ -169,42 +148,24 @@
             });
         }
 
-        // AKTIVÁLÁS ÉS ODALREPÜLÉS (FLY TO)
         function aktivalas(id, lng, lat) {
-            // Összes elem visszaállítása alaphelyzetbe
             document.querySelectorAll('.kemping-kartya').forEach(k => k.classList.remove('aktiv'));
             document.querySelectorAll('.custom-marker').forEach(m => m.classList.remove('aktiv'));
 
-            // Aktuálisak színezése
-            const aktivKartya = document.getElementById(`kartya-${id}`);
-            const aktivMarker = document.getElementById(`marker-${id}`);
-            
-            if(aktivKartya && aktivMarker) {
-                aktivKartya.classList.add('aktiv');
-                aktivMarker.classList.add('aktiv');
-                aktivKartya.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+            const ak = document.getElementById(`kartya-${id}`);
+            const am = document.getElementById(`marker-${id}`);
+            if(ak && am) { ak.classList.add('aktiv'); am.classList.add('aktiv'); ak.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
 
-            // A Mapbox fantasztikus, sima repülős (animált) kameramozgása az adott GPS pontra!
-            map.flyTo({
-                center: [lng, lat],
-                zoom: 12,
-                essential: true,
-                speed: 1.2
-            });
+            map.flyTo({ center: [lng, lat], zoom: 12, speed: 1.2 });
         }
 
-        // KERESŐ MOTOR
         function keresesEsSzures() {
             const szo = document.getElementById('searchBar').value.toLowerCase();
             const szurt = mindenHely.filter(hely => hely.nev.toLowerCase().includes(szo));
             feluletFrissites(szurt);
         }
 
-        // Indítás ha betöltődött a térkép stílusa
-        map.on('load', () => {
-            feluletFrissites(mindenHely);
-        });
+        map.on('load', () => { feluletFrissites(mindenHely); });
     </script>
 </body>
 </html>
