@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>KempingZóna - Magyar kemping térkép</title>
     
-    <!-- FIX: Hajszálpontosan egyező v3.3.0-ás Mapbox könyvtárak -->
+    <!-- Hivatalos Mapbox GL JS stíluslap és kód -->
     <link href="https://mapbox.com" rel="stylesheet" />
     <script src="https://mapbox.com"></script>
     
@@ -39,6 +39,7 @@
             color: white; border-radius: 8px; padding: 12px; font-size: 14px;
             outline: none; box-sizing: border-box;
         }
+        .kereso-mezo:focus { border-color: #10b981; }
 
         .kemping-lista { flex-grow: 1; overflow-y: auto; padding: 10px 20px; }
         
@@ -60,14 +61,14 @@
             font-size: 12px; font-weight: bold; margin-top: 12px;
         }
 
-        /* EGYEDI TÉRKÉP JELÖLŐ (MARKER) DIZÁJN */
+        /* TÉRKÉP JELÖLŐ (MARKER) STÍLUS */
         .custom-marker {
-            width: 14px; height: 14px; background-color: #10b981;
+            width: 16px; height: 16px; background-color: #10b981;
             border: 3px solid #ffffff; border-radius: 50%; cursor: pointer;
             box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
         }
         .custom-marker.aktiv {
-            background-color: #ef4444; box-shadow: 0 0 15px #ef4444; width: 16px; height: 16px;
+            background-color: #ef4444; box-shadow: 0 0 15px #ef4444; width: 18px; height: 18px;
         }
 
         @media (max-width: 768px) {
@@ -83,35 +84,37 @@
         <div class="terkep-oldal"><div id="map"></div></div>
         <div class="lista-oldal">
             <div class="kereso-resz">
-                <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés név alapján..." class="kereso-mezo">
+                <input type="text" id="searchBar" oninput="keresesEsSzures()" placeholder="Keresés név alapján (pl. Balaton...)" class="kereso-mezo">
             </div>
             <div class="kemping-lista" id="listaKontener"></div>
         </div>
     </div>
 
     <script>
-        // A TE SAJÁT MAPBOX TOKENED
+        // AZ ÚJ PRÉMIUM TOKENED BEÉPÍTVE
         mapboxgl.accessToken = 'pk.eyJ1IjoibmV0d29yazI1MTUiLCJhIjoiY21yMmM4dGV4MDNvNDJ6c2MxN3FscWZqcyJ9.un6Zvh11FbEHR7jZlsw0hQ';
 
-        // TÉRKÉP LÉTREHOZÁSA (A park4night által is használt sötét navigációs térkép stílus)
+        // TÉRKÉP INICIALIZÁLÁSA
         const map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/navigation-night-v1', 
+            style: 'mapbox://styles/mapbox/navigation-night-v1', // Sötét navigációs dizájn
             center: [19.5033, 47.1625], // Magyarország közepe
             zoom: 6.8
         });
 
         let aktualisMarkerek = [];
         const mindenHely = [
-            { id: 1, nev: "Balatonfüredi Prémium Kemping", kategoria: "⛺ Kemping", leiras: "Közvetlen vízparti kemping parcellákkal, modern vizesblokkal és saját stranddal.", lat: 46.9522, lng: 17.8921 },
-            { id: 2, nev: "Dunakanyar Stellplatz", kategoria: "🚐 Stellplatz", leiras: "Automata kapus, elkerített lakóautó parkoló áramcsatlakozással.", lat: 47.7845, lng: 18.9652 },
-            { id: 3, nev: "Mátrai Nomád Vadkemping", kategoria: "🌲 Vadkemping", leiras: "Gyönyörű erdei tisztás a magasan fekvő részeken, teljesen nomád körülmények között.", lat: 47.8825, lng: 19.9345 },
+            { id: 1, nev: "Balatonfüredi Prémium Kemping", kategoria: "⛺ Kemping", leiras: "Közvetlen vízparti kemping parcellákkal, modern vizesblokkal és saját stranddal a Balatonnál.", lat: 46.9522, lng: 17.8921 },
+            { id: 2, nev: "Dunakanyar Stellplatz", kategoria: "🚐 Stellplatz", leiras: "Automata kapus, elkerített lakóautó parkoló áramcsatlakozással és szürkevíz ürítéssel.", lat: 47.7845, lng: 18.9652 },
+            { id: 3, nev: "Mátrai Nomád Vadkemping", kategoria: "🌲 Vadkemping", leiras: "Gyönyörű erdei tisztás a magasan fekvő részeken, teljesen nomád körülmények között, térerő nélkül.", lat: 47.8825, lng: 19.9345 },
             { id: 4, nev: "Szegedi Tisza-parti Kemping", kategoria: "⛺ Kemping", leiras: "Fás, árnyékos kemping a Tisza folyó közvetlen közelében, közel a belvároshoz.", lat: 46.2530, lng: 20.1482 }
         ];
 
+        // FRISSÍTÉSI LOGIKA
         function feluletFrissites(helyek) {
             const listaKontener = document.getElementById('listaKontener');
             listaKontener.innerHTML = '';
+            
             aktualisMarkerek.forEach(m => m.remove());
             aktualisMarkerek = [];
 
@@ -165,10 +168,12 @@
             feluletFrissites(szurt);
         }
 
-        map.on('load', () => { feluletFrissites(mindenHely); });
+        // Biztonságos indítás a Mapbox load eseményére fűzve
+        map.on('load', () => { 
+            feluletFrissites(mindenHely); 
+        });
     </script>
 </body>
 </html>
-
 
 
